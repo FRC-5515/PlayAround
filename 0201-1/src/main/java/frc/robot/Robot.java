@@ -7,6 +7,14 @@
 
 package frc.robot;
 
+import frc.robot.MyVisionPipeline;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.vision.VisionRunner;
+//import edu.wpi.first.wpilibj.vision.VisionThread;
+import edu.wpi.first.vision.VisionThread;
+
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
@@ -24,6 +32,17 @@ import frc.robot.subsystems.ExampleSubsystem;
  * project.
  */
 public class Robot extends TimedRobot {
+
+
+
+
+
+
+
+
+
+
+
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static Drivetrain m_drivetrain;
   public static OI m_oi;
@@ -38,6 +57,11 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+        
+
+
+
+
     m_drivetrain = new Drivetrain();  
     m_oi = new OI();
     m_chooser.setDefaultOption("Default Auto", new ExampleCommand());

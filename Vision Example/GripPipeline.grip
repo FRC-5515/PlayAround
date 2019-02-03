@@ -1,0 +1,142 @@
+<grip:Pipeline>
+  <sources>
+    <grip:MultiImageFile>
+      <property name="path[31]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH150ftD0Angle0Brightness.jpg"/>
+      <property name="path[2]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH3ftD2Angle0Brightness.jpg"/>
+      <property name="path[5]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH4ftD1Angle0Brightness.jpg"/>
+      <property name="path[8]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH5ftD1Angle0Brightness.jpg"/>
+      <property name="path[20]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH9ftD2Angle0Brightness.jpg"/>
+      <property name="path[23]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH10ftD2Angle0Brightness.jpg"/>
+      <property name="path[26]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH11ftD3Angle0Brightness.jpg"/>
+      <property name="path[29]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH13ftD3Angle0Brightness.jpg"/>
+      <property name="path[12]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH6ftD3Angle0Brightness.jpg"/>
+      <property name="path[15]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH7ftD3Angle0Brightness.jpg"/>
+      <property name="index" value="31"/>
+      <property name="path[18]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH8ftD3Angle0Brightness.jpg"/>
+      <property name="path[0]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH2ftD0Angle0Brightness.jpg"/>
+      <property name="path[3]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH3ftD3Angle0Brightness.jpg"/>
+      <property name="path[6]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH4ftD2Angle0Brightness.jpg"/>
+      <property name="path[9]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH5ftD2Angle0Brightness.jpg"/>
+      <property name="path[21]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH9ftD3Angle0Brightness.jpg"/>
+      <property name="path[24]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH10ftD3Angle0Brightness.jpg"/>
+      <property name="path[27]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH12ftD2Angle0Brightness.jpg"/>
+      <property name="path[10]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH5ftD3Angle0Brightness.jpg"/>
+      <property name="path[13]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH7ftD1Angle0Brightness.jpg"/>
+      <property name="path[16]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH8ftD1Angle0Brightness.jpg"/>
+      <property name="path[19]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH9ftD1Angle0Brightness.jpg"/>
+      <property name="numImages" value="32"/>
+      <property name="path[30]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH14ftD3Angle0Brightness.jpg"/>
+      <property name="path[1]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH3ftD0Angle0Brightness.jpg"/>
+      <property name="path[4]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH4ftD0Angle0Brightness.jpg"/>
+      <property name="path[7]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH4ftD3Angle0Brightness.jpg"/>
+      <property name="path[22]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH10ftD1Angle0Brightness.jpg"/>
+      <property name="path[25]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH11ftD2Angle0Brightness.jpg"/>
+      <property name="path[28]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH12ftD3Angle0Brightness.jpg"/>
+      <property name="path[11]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH6ftD1Angle0Brightness.jpg"/>
+      <property name="path[14]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH7ftD2Angle0Brightness.jpg"/>
+      <property name="path[17]" value="C:\Users\koconnor\Documents\Game Design\2017\Vision Images\LED Boiler\1ftH8ftD2Angle0Brightness.jpg"/>
+    </grip:MultiImageFile>
+  </sources>
+  <steps>
+    <grip:Step name="HSL Threshold">
+      <grip:Input step="0" socket="0"/>
+      <grip:Input step="0" socket="1">
+        <value>
+          <double>77.6978417266187</double>
+          <double>92.45733788395904</double>
+        </value>
+      </grip:Input>
+      <grip:Input step="0" socket="2">
+        <value>
+          <double>171.98741007194243</double>
+          <double>255.0</double>
+        </value>
+      </grip:Input>
+      <grip:Input step="0" socket="3">
+        <value>
+          <double>43.57014388489208</double>
+          <double>255.0</double>
+        </value>
+      </grip:Input>
+      <grip:Output step="0" socket="0" previewed="false"/>
+    </grip:Step>
+    <grip:Step name="Find Contours">
+      <grip:Input step="1" socket="0"/>
+      <grip:Input step="1" socket="1">
+        <value>false</value>
+      </grip:Input>
+      <grip:Output step="1" socket="0" previewed="true"/>
+    </grip:Step>
+    <grip:Step name="Filter Contours">
+      <grip:Input step="2" socket="0"/>
+      <grip:Input step="2" socket="1">
+        <value>125.0</value>
+      </grip:Input>
+      <grip:Input step="2" socket="2">
+        <value>0.0</value>
+      </grip:Input>
+      <grip:Input step="2" socket="3">
+        <value>0</value>
+      </grip:Input>
+      <grip:Input step="2" socket="4">
+        <value>1000</value>
+      </grip:Input>
+      <grip:Input step="2" socket="5">
+        <value>0</value>
+      </grip:Input>
+      <grip:Input step="2" socket="6">
+        <value>1000</value>
+      </grip:Input>
+      <grip:Input step="2" socket="7">
+        <value>
+          <int>0</int>
+          <int>100</int>
+        </value>
+      </grip:Input>
+      <grip:Input step="2" socket="8">
+        <value>1000000</value>
+      </grip:Input>
+      <grip:Input step="2" socket="9">
+        <value>0</value>
+      </grip:Input>
+      <grip:Input step="2" socket="10">
+        <value>0</value>
+      </grip:Input>
+      <grip:Input step="2" socket="11">
+        <value>1000</value>
+      </grip:Input>
+      <grip:Output step="2" socket="0" previewed="true"/>
+    </grip:Step>
+  </steps>
+  <connections>
+    <grip:Connection>
+      <grip:Output source="0" socket="0" previewed="true"/>
+      <grip:Input step="0" socket="0"/>
+    </grip:Connection>
+    <grip:Connection>
+      <grip:Output step="0" socket="0" previewed="false"/>
+      <grip:Input step="1" socket="0"/>
+    </grip:Connection>
+    <grip:Connection>
+      <grip:Output step="1" socket="0" previewed="true"/>
+      <grip:Input step="2" socket="0"/>
+    </grip:Connection>
+  </connections>
+  <settings>
+    <teamNumber>0</teamNumber>
+    <publishAddress>roboRIO-0-FRC.local</publishAddress>
+    <deployAddress>roboRIO-0-FRC.local</deployAddress>
+    <deployDir>/home/lvuser</deployDir>
+    <deployUser>lvuser</deployUser>
+    <deployJavaHome>/usr/local/frc/JRE/</deployJavaHome>
+    <deployJvmOptions>-Xmx50m -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:MaxNewSize=16m</deployJvmOptions>
+  </settings>
+  <codeGenerationSettings>
+    <language>Java</language>
+    <className>GripPipeline</className>
+    <implementWpilibPipeline>true</implementWpilibPipeline>
+    <saveDir>C:\Users\koconnor\Documents\Game Design\2017\Vision Example</saveDir>
+    <packageName>org.frc.team</packageName>
+    <moduleName>grip</moduleName>
+  </codeGenerationSettings>
+</grip:Pipeline>
