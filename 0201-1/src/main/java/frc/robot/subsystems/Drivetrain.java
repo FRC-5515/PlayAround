@@ -13,6 +13,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.command.Subsystem;
 import frc.robot.RobotMap;
 import frc.robot.commands.TankDrive;
+import frc.robot.commands.TraceTarget;
 
 /**
  * Add your docs here.
@@ -39,6 +40,6 @@ public class Drivetrain extends Subsystem {
         // Set the default command for a subsystem here.
         // setDefaultCommand(new MySpecialCommand());
 
-        setDefaultCommand(new TankDrive());
+        setDefaultCommand(new TraceTarget());
     }
 }

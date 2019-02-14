@@ -30,8 +30,8 @@ public class RobotMap {
 
     //Joystick
     public static final int OI_DRIVER_CONTROLLER = 0;
-    public static final int DRIVE_CONTROLLER_LEFT_AXIS = 0;
-	public static final int DRIVE_CONTROLLER_RIGHT_AXIS = 1;
+    public static final int DRIVE_CONTROLLER_LEFT_AXIS = 2;
+	public static final int DRIVE_CONTROLLER_RIGHT_AXIS = 3;
 
     
 }

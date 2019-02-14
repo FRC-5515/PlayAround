@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 
-import edu.wpi.first.wpilibj.vision.VisionPipeline;
+import edu.wpi.first.vision.VisionPipeline;
 
 import org.opencv.core.*;
 import org.opencv.core.Core.*;
@@ -31,7 +31,7 @@ public class MyVisionPipeline implements VisionPipeline {
 	private Mat cvResizeOutput = new Mat();
 	private Mat hsvThresholdOutput = new Mat();
 	private Mat cvErodeOutput = new Mat();
-	private MatOfKeyPoint findBlobsOutput = new MatOfKeyPoint();
+	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -65,12 +65,10 @@ public class MyVisionPipeline implements VisionPipeline {
 		Scalar cvErodeBordervalue = new Scalar(-1);
 		cvErode(cvErodeSrc, cvErodeKernel, cvErodeAnchor, cvErodeIterations, cvErodeBordertype, cvErodeBordervalue, cvErodeOutput);
 
-		// Step Find_Blobs0:
-		Mat findBlobsInput = cvErodeOutput;
-		double findBlobsMinArea = 1.0;
-		double[] findBlobsCircularity = {0.0, 1.0};
-		boolean findBlobsDarkBlobs = false;
-		findBlobs(findBlobsInput, findBlobsMinArea, findBlobsCircularity, findBlobsDarkBlobs, findBlobsOutput);
+		// Step Find_Contours0:
+		Mat findContoursInput = cvErodeOutput;
+		boolean findContoursExternalOnly = false;
+		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
 
 	}
 
@@ -99,11 +97,11 @@ public class MyVisionPipeline implements VisionPipeline {
 	}
 
 	/**
-	 * This method is a generated getter for the output of a Find_Blobs.
-	 * @return MatOfKeyPoint output from Find_Blobs.
+	 * This method is a generated getter for the output of a Find_Contours.
+	 * @return ArrayList<MatOfPoint> output from Find_Contours.
 	 */
-	public MatOfKeyPoint findBlobsOutput() {
-		return findBlobsOutput;
+	public ArrayList<MatOfPoint> findContoursOutput() {
+		return findContoursOutput;
 	}
 
 
@@ -165,63 +163,25 @@ public class MyVisionPipeline implements VisionPipeline {
 	}
 
 	/**
-	 * Detects groups of pixels in an image.
-	 * @param input The image on which to perform the find blobs.
-	 * @param minArea The minimum size of a blob that will be found
-	 * @param circularity The minimum and maximum circularity of blobs that will be found
-	 * @param darkBlobs The boolean that determines if light or dark blobs are found.
-	 * @param blobList The output where the MatOfKeyPoint is stored.
+	 * Sets the values of pixels in a binary image to their distance to the nearest black pixel.
+	 * @param input The image on which to perform the Distance Transform.
+	 * @param type The Transform.
+	 * @param maskSize the size of the mask.
+	 * @param output The image in which to store the output.
 	 */
-	private void findBlobs(Mat input, double minArea, double[] circularity,
-		Boolean darkBlobs, MatOfKeyPoint blobList) {
-		FeatureDetector blobDet = FeatureDetector.create(FeatureDetector.SIMPLEBLOB);
-		try {
-			File tempFile = File.createTempFile("config", ".xml");
-
-			StringBuilder config = new StringBuilder();
-
-			config.append("<?xml version=\"1.0\"?>\n");
-			config.append("<opencv_storage>\n");
-			config.append("<thresholdStep>10.</thresholdStep>\n");
-			config.append("<minThreshold>50.</minThreshold>\n");
-			config.append("<maxThreshold>220.</maxThreshold>\n");
-			config.append("<minRepeatability>2</minRepeatability>\n");
-			config.append("<minDistBetweenBlobs>10.</minDistBetweenBlobs>\n");
-			config.append("<filterByColor>1</filterByColor>\n");
-			config.append("<blobColor>");
-			config.append((darkBlobs ? 0 : 255));
-			config.append("</blobColor>\n");
-			config.append("<filterByArea>1</filterByArea>\n");
-			config.append("<minArea>");
-			config.append(minArea);
-			config.append("</minArea>\n");
-			config.append("<maxArea>");
-			config.append(Integer.MAX_VALUE);
-			config.append("</maxArea>\n");
-			config.append("<filterByCircularity>1</filterByCircularity>\n");
-			config.append("<minCircularity>");
-			config.append(circularity[0]);
-			config.append("</minCircularity>\n");
-			config.append("<maxCircularity>");
-			config.append(circularity[1]);
-			config.append("</maxCircularity>\n");
-			config.append("<filterByInertia>1</filterByInertia>\n");
-			config.append("<minInertiaRatio>0.1</minInertiaRatio>\n");
-			config.append("<maxInertiaRatio>" + Integer.MAX_VALUE + "</maxInertiaRatio>\n");
-			config.append("<filterByConvexity>1</filterByConvexity>\n");
-			config.append("<minConvexity>0.95</minConvexity>\n");
-			config.append("<maxConvexity>" + Integer.MAX_VALUE + "</maxConvexity>\n");
-			config.append("</opencv_storage>\n");
-			FileWriter writer;
-			writer = new FileWriter(tempFile, false);
-			writer.write(config.toString());
-			writer.close();
-			blobDet.read(tempFile.getPath());
-		} catch (IOException e) {
-			e.printStackTrace();
+	private void findContours(Mat input, boolean externalOnly,
+		List<MatOfPoint> contours) {
+		Mat hierarchy = new Mat();
+		contours.clear();
+		int mode;
+		if (externalOnly) {
+			mode = Imgproc.RETR_EXTERNAL;
 		}
-
-		blobDet.detect(input, blobList);
+		else {
+			mode = Imgproc.RETR_LIST;
+		}
+		int method = Imgproc.CHAIN_APPROX_SIMPLE;
+		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
 
 
