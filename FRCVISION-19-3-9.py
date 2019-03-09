@@ -1,16 +1,19 @@
 # coding: utf-8
 import math
 import os
-import threading
-import time
 import random
+import threading
+import multiprocessing
+import time
 from random import choice
+import pexpect
+
+import numpy as np
+from networktables import NetworkTables
 
 import cv2
-import numpy as np
+import RPi.GPIO as gp
 from matplotlib import pyplot as plt
-
-from networktables import NetworkTables
 
 
 def gray(img):
@@ -317,28 +320,85 @@ def find_best_fit_line(X, Y, slope_sensitivity):
     return lineParam
 
 
+
+
+# DisplayLED Set
+gp.setmode(gp.BCM)
+channel = [6,13,19,26]
+gp.setup(channel,gp.OUT)
+
+displayPins={
+'WIFI' : 3,
+'NETWORKTABLE' : 1,
+'CAM' : 2,
+'IMGPROCESS' : 0}
+
+def resetPins():
+    for pin in channel:
+        gp.output(pin,0)
+
+resetPins()
+
+def displayUpdate(pinTarget,state = True,mode = 'const'):
+    pin = channel[pinTarget]
+    if mode == 'const':
+        gp.output(pin,state)
+    elif mode == 'blink':
+        gp.output(pin,not gp.input(pin))
+    return
+
+connectionRestartRequest = 0
+def checkNetworkConnection():
+    global connectionRestartRequest
+    SSID = os.popen("iwconfig wlan0 \
+                | grep 'ESSID' \
+                | awk '{print $4}' \
+                | awk -F\\\" '{print $2}'").read()
+
+    if SSID.find('5515')>-1:
+        state = 1
+    else:
+        state = 0
+        connectionRestartRequest +=1
+        
+    print(['wifi',state])
+    displayUpdate(pinTarget=displayPins['WIFI'],state=state)
+    return state
+
+
 # Networktables Setup
-cond = threading.Condition()
-notified = [False]
+def networkTableSetup():
+    global table
+    cond = threading.Condition()
+    notified = [False]
 
 
-def connectionListener(connected, info):
-    print(info, '; Connected=%s' % connected)
+    def connectionListener(connected, info):
+        print(info, '; Connected=%s' % connected)
+        with cond:
+            notified[0] = True
+            cond.notify()
+
+
+    NetworkTables.initialize(server='10.55.15.2')
+    NetworkTables.addConnectionListener(connectionListener, immediateNotify=True)
+
     with cond:
-        notified[0] = True
-        cond.notify()
+        print("Waiting")
+        if not notified[0]:
+            cond.wait()
+
+    print("Connected!")
+    table = NetworkTables.getTable('datatable')
 
 
-NetworkTables.initialize(server='10.55.15.2')
-NetworkTables.addConnectionListener(connectionListener, immediateNotify=True)
 
-with cond:
-    print("Waiting")
-    if not notified[0]:
-        cond.wait()
-
-print("Connected!")
-table = NetworkTables.getTable('datatable')
+def checkNetworkTableConnection():
+    state =NetworkTables.isConnected()
+    # state =1
+    print(['nwtb',state])
+    displayUpdate(pinTarget=displayPins['NETWORKTABLE'],state=state)
+    return state
 
 
 # Stablization config
@@ -351,7 +411,16 @@ IMG_SPLIT_PRECISION = 40
 FRAME_SIZE_INDEX = 1
 
 # cam setup
+
 cap = cv2.VideoCapture(0)
+
+def checkCamConnection():
+    state =cap.isOpened()
+    # state = 1
+    print(['camc',state])
+    displayUpdate(pinTarget=displayPins['CAM'],state=state)
+    return state
+
 
 # Runtime Setup
 k_cache = []
@@ -397,23 +466,110 @@ def paramProcess(k, b, x, y, idx):
 
 thisFrame =[]
 continueFlag = 1
+networkState = 0
+updatedFlag = 0
 def getFrame():
-    global thisFrame
+    global cap,thisFrame,updatedFlag,continueFlag
     while continueFlag:
-        _, getFrame = cap.read()
-        if getFrame.size:
-            thisFrame = getFrame
+        if cap.isOpened():
+            _, getFrame = cap.read()
+            if hasattr(getFrame,'size') and getFrame.size:
+                thisFrame = getFrame
+                updatedFlag = 1
+            else:
+                cap = cv2.VideoCapture(0)
+                time.sleep(1)
+        else:
+            cap = cv2.VideoCapture(0)
+            time.sleep(1)
+
+
+
     return
+def networkReconnect():
+    global continueFlag,connectionRestartRequest,networkState
+
+    connectionRestartRequest = 0
+            
+
+    while continueFlag:
+
+
+
+        if connectionRestartRequest:
+            p = pexpect.spawn("sudo /etc/init.d/network-manager restart")
+            try:
+                if p.expect([pexpect.TIMEOUT,'password']):
+                    p.sendline('ubuntu')
+            except:
+                pass
+            try:
+                p.expect([pexpect.TIMEOUT,pexpect.EOF])
+            except:
+                pass
+            print(str(p))
+            time.sleep(5)
+            connectionRestartRequest = 0
+        SSID = os.popen("iwconfig wlan0 \
+                | grep 'ESSID' \
+                | awk '{print $4}' \
+                | awk -F\\\" '{print $2}'").read()
+
+        if SSID.find('5515')>-1:
+            state = 1
+        else:
+            state = 0
+            connectionRestartRequest +=1
+            
+        print(['wifi',state])
+        displayUpdate(pinTarget=displayPins['WIFI'],state=state)
+        networkState = state
+        time.sleep(5)
+    return 1
+
+
+
+allCheckedMark = 0
+def checkAll():
+    global allCheckedMark
+    global networkState
+    while continueFlag:
+        A1 = checkNetworkTableConnection()
+        A2 = checkCamConnection()
+        A3 = networkState
+        allCheckedMark = A1 and A2 and A3
+        time.sleep(2)
+    return 1
+
+
 
 if __name__=="__main__":
-
-    frameThread = threading.Thread(target=getFrame)
+    frameThread = multiprocessing.Process(target=getFrame)
     frameThread.start()
 
+    networkTableSetupThread = multiprocessing.Process(target=networkTableSetup)
+    networkTableSetupThread.start()
+
+    networkReconnectThread = multiprocessing.Process(target=networkReconnect)
+    networkReconnectThread.start()  
+
+    checkAllThread = multiprocessing.Process(target=checkAll)
+    checkAllThread.start()
+
+
     while(1):
+        print('running loop')
+        if not allCheckedMark:
+            continue
+
+        print(['updatedFlag',updatedFlag])
+        if not updatedFlag:
+            continue
+
         idx = idx + 1
         # get a frame
         frame = thisFrame
+        updatedFlag = 0
         height, width = frame.shape[:2]
         frame = cv2.resize(frame, (math.floor(
             FRAME_SIZE_INDEX*width), math.floor(FRAME_SIZE_INDEX*height)))
@@ -478,18 +634,34 @@ if __name__=="__main__":
 
                 ctrlParamList = paramProcess(k, b, height, width, idx)
 
+                displayUpdate(displayPins['IMGPROCESS'],mode='blink')
                 for param in ctrlParamList:
                     print("{0} is equal to {1}".format(param[0],param[1]))
-                    # table.putNumber(param[0],param[1])
+                    try:
+                        table.putNumber(param[0],param[1])
+                        
+
+                    except:
+                        print('no NetworkTable')
 
 
 
             cv2.imshow("capture", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
+           
             break
+        # while(1):
+        #     if cv2.waitKey(1) & 0xFF == ord('w'):
+        #         break
+
     
 
     continueFlag=0
     frameThread.join(timeout=1)
+    networkTableSetupThread.join(timeout = 1)
+    networkReconnectThread.join(timeout=5)
+    checkAllThread.join(timeout=2)
     cap.release()
     cv2.destroyAllWindows()
+    resetPins()
+    gp.cleanup()
