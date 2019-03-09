@@ -544,16 +544,16 @@ def checkAll():
 
 
 if __name__=="__main__":
-    frameThread = multiprocessing.Process(target=getFrame)
+    frameThread = threading.Thread(target=getFrame)
     frameThread.start()
 
-    networkTableSetupThread = multiprocessing.Process(target=networkTableSetup)
+    networkTableSetupThread = threading.Thread(target=networkTableSetup)
     networkTableSetupThread.start()
 
-    networkReconnectThread = multiprocessing.Process(target=networkReconnect)
+    networkReconnectThread = threading.Thread(target=networkReconnect)
     networkReconnectThread.start()  
 
-    checkAllThread = multiprocessing.Process(target=checkAll)
+    checkAllThread = threading.Thread(target=checkAll)
     checkAllThread.start()
 
 
