@@ -415,6 +415,7 @@ FRAME_SIZE_INDEX = 1
 cap = cv2.VideoCapture(0)
 
 def checkCamConnection():
+    global cap
     state =cap.isOpened()
     # state = 1
     print(['camc',state])
@@ -533,12 +534,11 @@ allCheckedMark = 0
 def checkAll():
     global allCheckedMark
     global networkState
-    while continueFlag:
-        A1 = checkNetworkTableConnection()
-        A2 = checkCamConnection()
-        A3 = networkState
-        allCheckedMark = A1 and A2 and A3
-        time.sleep(2)
+    
+    A1 = checkNetworkTableConnection()
+    A2 = checkCamConnection()
+    A3 = networkState
+    allCheckedMark = A1 and A2 and A3
     return 1
 
 
@@ -553,13 +553,15 @@ if __name__=="__main__":
     networkReconnectThread = threading.Thread(target=networkReconnect)
     networkReconnectThread.start()  
 
-    checkAllThread = threading.Thread(target=checkAll)
-    checkAllThread.start()
+    
 
 
     while(1):
         print('running loop')
-        if not allCheckedMark:
+
+        # if idx%10 == 0:
+        #     checkAll()
+        if not checkAll():
             continue
 
         print(['updatedFlag',updatedFlag])
@@ -660,7 +662,6 @@ if __name__=="__main__":
     frameThread.join(timeout=1)
     networkTableSetupThread.join(timeout = 1)
     networkReconnectThread.join(timeout=5)
-    checkAllThread.join(timeout=2)
     cap.release()
     cv2.destroyAllWindows()
     resetPins()
