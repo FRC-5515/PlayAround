@@ -91,7 +91,7 @@ def find_line_parameters(X, Y):
     # X, Y = find_best_pt_group(Xraw, Yraw)
 
     if len(X) == 0:
-        print("no valid group found, failed")
+        #print("no valid group found, failed")
         return 0
     # grouped_pts = raw_pts
 
@@ -99,11 +99,11 @@ def find_line_parameters(X, Y):
     while True:
         line_param = find_best_fit_line(X.copy(), Y.copy(), slope_sensitivity)
         if slope_sensitivity > MAX_SLOPE_SEN_CONST:
-            print("max sensitivity reached, can't locate the band")
+            #print("max sensitivity reached, can't locate the band")
             return 0
         elif line_param == 0:
             slope_sensitivity = slope_sensitivity + SLOPE_SEN_STEP_CONST
-            print('try increase sensitivity to ', slope_sensitivity)
+            #print('try increase sensitivity to ', slope_sensitivity)
         else:
             return line_param  # SUCCESS
 
@@ -124,7 +124,7 @@ def find_best_pt_group(Xraw, Yraw):
         return ((x[1]-x[0])**2+(y[1]-y[0])**2)**0.5
 
     if len(Xraw) != len(Yraw):
-        print('ivalid data input')
+        #print('ivalid data input')
         return 0
 
     sample_count = 0
@@ -150,7 +150,7 @@ def find_best_pt_group(Xraw, Yraw):
         if len(selected_group) > LEAST_POINTS_CONST_INT:
             return ([Xraw[i] for i in selected_group], [Yraw[i] for i in selected_group])
         sample_count = sample_count+1
-    print('valid group not found')
+    #print('valid group not found')
     return [], []
 
 
@@ -224,7 +224,7 @@ def findForSingleIndex(img, y_index):
     #     if max_group_length > len(pts):
     #         break
     # if len(max_group) < LEAST_POINTS_CONST:
-    #     print("no point group found")
+    #     #print("no point group found")
     #     return 0
 
     # return max_group
@@ -264,7 +264,8 @@ def find_best_fit_line(X, Y, slope_sensitivity):
     count = 0
 
     if doDebugOutput:
-        print([count, k1])
+        #print([count, k1])
+        pass
 
     while doRemoveOutliers:
 
@@ -274,21 +275,25 @@ def find_best_fit_line(X, Y, slope_sensitivity):
         k2 = line[0]
 
         if doDebugOutput:
-            print([count, k2])
-            print('[dif,sen,len]')
-            print([abs(math.atan(k2)-math.atan(k1)), slope_sensitivity, len(X)])
+            pass
+            #print([count, k2])
+            #print('[dif,sen,len]')
+            #print([abs(math.atan(k2)-math.atan(k1)), slope_sensitivity, len(X)])
 
         if (abs(math.atan(k2)-math.atan(k1)) < slope_sensitivity)or (abs(math.atan(k2)+math.atan(k1)) < slope_sensitivity):
             if doDebugOutput:
-                print('success! return result')
+                pass
+                #print('success! return result')
             break
         elif(count > MAX_REMOVE_CONST):
             if doDebugOutput:
-                print('max remove reached, not found')
+                pass
+                #print('max remove reached, not found')
             return 0
         elif(len(X) == 1):
             if doDebugOutput:
-                print('all point deleted, not found')
+                pass
+                #print('all point deleted, not found')
             return 0
         else:
             k1 = k2
@@ -361,7 +366,7 @@ def checkNetworkConnection():
         state = 0
         connectionRestartRequest +=1
         
-    print(['wifi',state])
+    #print(['wifi',state])
     displayUpdate(pinTarget=displayPins['WIFI'],state=state)
     return state
 
@@ -374,7 +379,7 @@ def networkTableSetup():
 
 
     def connectionListener(connected, info):
-        print(info, '; Connected=%s' % connected)
+        #print(info, '; Connected=%s' % connected)
         with cond:
             notified[0] = True
             cond.notify()
@@ -384,11 +389,11 @@ def networkTableSetup():
     NetworkTables.addConnectionListener(connectionListener, immediateNotify=True)
 
     with cond:
-        print("Waiting")
+        #print("Waiting")
         if not notified[0]:
             cond.wait()
 
-    print("Connected!")
+    #print("Connected!")
     table = NetworkTables.getTable('datatable')
 
 
@@ -396,7 +401,7 @@ def networkTableSetup():
 def checkNetworkTableConnection():
     state =NetworkTables.isConnected()
     # state =1
-    print(['nwtb',state])
+    #print(['nwtb',state])
     displayUpdate(pinTarget=displayPins['NETWORKTABLE'],state=state)
     return state
 
@@ -406,7 +411,7 @@ def checkCamConnection():
     global cap
     state =cap.isOpened()
     # state = 1
-    print(['camc',state])
+    #print(['camc',state])
     displayUpdate(pinTarget=displayPins['CAM'],state=state)
     return state
 
@@ -437,12 +442,16 @@ def paramProcess(k, b, x, y, idx):
 
     return [
 
+
+
         ['imgproc_index', idx],
-        ['imgproc_theta', theta],
-        ['imgproc_LR', LR],
-        ['imgproc_dist', dist],
-        ['imgproc_sizex', x],
-        ['imgproc_sizey', y]
+        ['imgproc_k',k],
+        ['imgproc_b',b]
+       # ['imgproc_theta', theta],
+       # ['imgproc_LR', LR],
+       # ['imgproc_dist', dist],
+       # ['imgproc_sizex', x],
+       # ['imgproc_sizey', y]
 
     ]
 
@@ -489,7 +498,7 @@ def networkReconnect():
                 p.expect([pexpect.TIMEOUT,pexpect.EOF])
             except:
                 pass
-            print(str(p))
+            #print(str(p))
             time.sleep(5)
             connectionRestartRequest = 0
         SSID = os.popen("iwconfig wlan0 \
@@ -503,7 +512,7 @@ def networkReconnect():
             state = 0
             connectionRestartRequest +=1
             
-        print(['wifi',state])
+        #print(['wifi',state])
         displayUpdate(pinTarget=displayPins['WIFI'],state=state)
         networkState = state
         time.sleep(5)
@@ -551,14 +560,14 @@ def mainLoop():
     idx = 0
 
     while(1):
-        print('running loop')
+        #print('running loop')
 
         # if idx%10 == 0:
         #     checkAll()
         if not checkAll():
             continue
 
-        print(['updatedFlag',updatedFlag])
+        #print(['updatedFlag',updatedFlag])
         if not updatedFlag:
             continue
 
@@ -599,7 +608,8 @@ def mainLoop():
                                     for y_index in y_indices]]
 
         if len(raw_pts) == 0:
-            print("no any point found, failed")
+            pass
+            #print("no any point found, failed")
         else:
 
             Xraw, Yraw = [pt[0] for pt in raw_pts], [pt[1] for pt in raw_pts]
@@ -621,7 +631,7 @@ def mainLoop():
                     last_k = k
                     last_b = b
                 else:
-                    print('break threshold')
+                    #print('break threshold')
                     keep_count = keep_count+1
                     k, b = last_k, last_b
                     line_p1 = (0, math.floor(b))
@@ -632,13 +642,14 @@ def mainLoop():
 
                 displayUpdate(displayPins['IMGPROCESS'],mode='blink')
                 for param in ctrlParamList:
-                    print("{0} is equal to {1}".format(param[0],param[1]))
+                    print("{0} {1}".fovfmmmjrmat(param[0],param[1]))
                     try:
                         table.putNumber(param[0],param[1])
                         
 
                     except:
-                        print('no NetworkTable')
+                        pass
+                        #print('no NetworkTable')
 
 
 
@@ -646,9 +657,9 @@ def mainLoop():
         if cv2.waitKey(1) & 0xFF == ord('q'):
            
             break
-        # while(1):
-        #     if cv2.waitKey(1) & 0xFF == ord('w'):
-        #         break
+        while(1):
+            if cv2.waitKey(1) & 0xFF == ord('w'):
+                break
 
     
 
