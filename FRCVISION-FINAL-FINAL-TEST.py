@@ -661,7 +661,7 @@ def mainLoop():
                 displayUpdate(displayPins['IMGPROCESS'],mode='blink')
                 for param in ctrlParamList:
                     f2.read()
-                    f2.write("{0} {1}".format(param[0],param[1]))
+                    f2.write("{0} ".format(param[1]))
 
                     print("{0} {1}".format(param[0],param[1]))
                     try:
@@ -672,6 +672,8 @@ def mainLoop():
                         pass
                         #print('no NetworkTable')
 
+                f2.read()
+                f2.write("\n")
 
 
             cv2.imshow("capture", frame)

@@ -436,36 +436,18 @@ def paramProcess(k, b, x, y, idx):
     else:
         LR = -1  # line <--> pt
 
-    
-    
-    ##dist
-    MID_POINT = [351.089683962194,1143.60660278208]
-    
-    A,B,C=k,-1,b
-    [x0,y0] = MID_POINT
-
     A,B,C=k,-1,b
     
     dist = abs(A*x0+B*y0+C)/(A**2+B**2)**0.5
-
-    
-    x_intersec = -b/k
-    x_offset = MID_POINT[0]-x_intersec
-
 
     return [
 
 
 
         ['imgproc_index', idx],
-        
-        ['imgproc_dist', dist],
-        
-        ['imgproc_x_intersect', x_intersec],
-        ['imgproc_x_offset', x_offset],
-        # ['imgproc_k',k],
-        # ['imgproc_b',b]
-        ['imgproc_theta', theta]
+        ['imgproc_k',k],
+        ['imgproc_b',b]
+       # ['imgproc_theta', theta],
        # ['imgproc_LR', LR],
        # ['imgproc_dist', dist],
        # ['imgproc_sizex', x],
@@ -662,7 +644,6 @@ def mainLoop():
                 for param in ctrlParamList:
                     f2.read()
                     f2.write("{0} {1}".format(param[0],param[1]))
-
                     print("{0} {1}".format(param[0],param[1]))
                     try:
                         table.putNumber(param[0],param[1])
@@ -676,11 +657,10 @@ def mainLoop():
 
             cv2.imshow("capture", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
-           
             break
-        # while(1):
-        #     if cv2.waitKey(1) & 0xFF == ord('w'):
-        #         break
+        while(1):
+            if cv2.waitKey(1) & 0xFF == ord('w'):
+                break
 
     
 
@@ -697,6 +677,7 @@ def mainLoop():
 
 if __name__=="__main__":
     f2 = open('test.txt','r+')
+
     frameThread = threading.Thread(target=getFrame)
     frameThread.start()
 
