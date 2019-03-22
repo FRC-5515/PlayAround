@@ -333,10 +333,10 @@ channel = [6,13,19,26]
 gp.setup(channel,gp.OUT)
 
 displayPins={
-'WIFI' : 3,
+'WIFI' : 0,
 'NETWORKTABLE' : 1,
 'CAM' : 2,
-'IMGPROCESS' : 0}
+'IMGPROCESS' : 3}
 
 def resetPins():
     for pin in channel:
@@ -543,9 +543,9 @@ def checkAll():
     global allCheckedMark
     global networkState
     
-    A1 = checkNetworkTableConnection() or True
+    A1 = checkNetworkTableConnection()
     A2 = checkCamConnection()
-    A3 = networkState or True
+    A3 = networkState
     allCheckedMark = A1 and A2 and A3
     return allCheckedMark
 
@@ -555,7 +555,7 @@ def checkAll():
     
 
 def mainLoop():
-    global  updatedFlag, continueFlag, thisFrame,table,f2
+    global  updatedFlag, continueFlag, thisFrame,table#,f2
 
     # Stablization config
     delK_THRESHOLD = 0.7
@@ -597,7 +597,7 @@ def mainLoop():
         frame = cv2.resize(frame, (math.floor(
             FRAME_SIZE_INDEX*width), math.floor(FRAME_SIZE_INDEX*height)))
         height, width = frame.shape[:2]
-        cv2.imshow("capture", frame)
+        # cv2.imshow("capture", frame)
     # FIND-INTERSECTIONS & RAW POINTS
         # Read all intersect found
         # Generate all Y Index
@@ -660,8 +660,8 @@ def mainLoop():
 
                 displayUpdate(displayPins['IMGPROCESS'],mode='blink')
                 for param in ctrlParamList:
-                    f2.read()
-                    f2.write("{0} ".format(param[1]))
+                    # f2.read()
+                    # f2.write("{0} ".format(param[1]))
 
                     print("{0} {1}".format(param[0],param[1]))
                     try:
@@ -672,11 +672,11 @@ def mainLoop():
                         pass
                         #print('no NetworkTable')
 
-                f2.read()
-                f2.write("\n")
+                # f2.read()
+                # f2.write("\n")
 
 
-            cv2.imshow("capture", frame)
+            # cv2.imshow("capture", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
            
             break
@@ -698,7 +698,7 @@ def mainLoop():
 
 
 if __name__=="__main__":
-    f2 = open('test.txt','r+')
+    # f2 = open('test.txt','r+')
     frameThread = threading.Thread(target=getFrame)
     frameThread.start()
 

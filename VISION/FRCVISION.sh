@@ -9,7 +9,7 @@
 # Description:       PythonFRCVISION service
 ### END INIT INFO
 
-filepath="/home/frc5515/Desktop/FRCVISION-19-3-9.py"
+filepath="/home/frc5515/Desktop/FRCVISION.py"
 
 start(){
     nohup python3 $filepath>/dev/null 2>&1 &
