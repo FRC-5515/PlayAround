@@ -6,10 +6,10 @@ import threading
 import multiprocessing
 import time
 from random import choice
-import pexpect
+# import pexpect
 
 import numpy as np
-from networktables import Netwo rkTables
+# from networktables import NetworkTables
 
 import cv2
 import RPi.GPIO as gp
@@ -373,54 +373,54 @@ def checkNetworkConnection():
 
 
 # Networktables Setup
-def networkTableSetup():
-    global table
-    cond = threading.Condition()
-    notified = [False]
+# def networkTableSetup():
+#     global table
+#     cond = threading.Condition()
+#     notified = [False]
 
 
-    def connectionListener(connected, info):
-        #print(info, '; Connected=%s' % connected)
-        with cond:
-            notified[0] = True
-            cond.notify()
+#     def connectionListener(connected, info):
+#         #print(info, '; Connected=%s' % connected)
+#         with cond:
+#             notified[0] = True
+#             cond.notify()
 
 
-    NetworkTables.initialize(server='10.55.15.2')
-    NetworkTables.addConnectionListener(connectionListener, immediateNotify=True)
+#     NetworkTables.initialize(server='10.55.15.2')
+#     NetworkTables.addConnectionListener(connectionListener, immediateNotify=True)
 
-    with cond:
-        #print("Waiting")
-        if not notified[0]:
-            cond.wait()
+#     with cond:
+#         #print("Waiting")
+#         if not notified[0]:
+#             cond.wait()
 
-    #print("Connected!")
-    table = NetworkTables.getTable('datatable')
+#     #print("Connected!")
+#     table = NetworkTables.getTable('datatable')
 
 
 
 def checkNetworkTableConnection():
-    state =NetworkTables.isConnected()
-    # state =1
+    # state =NetworkTables.isConnected()
+    state =1
     #print(['nwtb',state])
     displayUpdate(pinTarget=displayPins['NETWORKTABLE'],state=state)
     return state
 
-def checkRoborioCommand():
-    global table,doImgProcess,continueFlag
-    while continueFlag:
-        state = False
-        if NetworkTables.isConnected():
-            try:
-                if table.getNumber('light',0):
-                    state = True
-            except:
-                pass
+# def checkRoborioCommand():
+#     global table,doImgProcess,continueFlag
+#     while continueFlag:
+#         state = False
+#         if NetworkTables.isConnected():
+#             try:
+#                 if table.getNumber('light',0):
+#                     state = True
+#             except:
+#                 pass
         
-        doImgProcess = state
-        displayUpdate(pinTarget=displayPins['LIGHT'],state=state)
-        time.sleep(0.5)
-    return 1
+#         doImgProcess = state
+#         displayUpdate(pinTarget=displayPins['LIGHT'],state=state)
+#         time.sleep(0.5)
+#     return 1
     
 
 cap = cv2.VideoCapture(0)
@@ -436,6 +436,7 @@ def checkCamConnection():
 
 
 def paramProcess(k, b, x, y, idx):
+    global leftSpeed, rightSpeed
     # Ttheta
     atank = math.atan(k)
     if atank < 0:
@@ -486,18 +487,53 @@ def paramProcess(k, b, x, y, idx):
     
     x_intersec_best = func(theta)
     delta_x_intersec = x_intersec - x_intersec_best
+
+
+    #car motion algorithm
+
+    delta = delta_x_intersec
+
+    deltaGoal = 30
+    thetaGoal = 0.11
+    thetaGood = 0.785
+    leftSpeed = 0
+    rightSpeed = 0
+
+    if delta > deltaGoal:
+        if theta > thetaGood:
+            if theta > 0:
+                leftSpeed = 0.2
+                rightSpeed = -0.2
+            else:
+                leftSpeed = -0.2
+                rightSpeed = 0.2
+            
+        elif theta < thetaGood and  theta > thetaGoal:
+            if theta > 0:
+                leftSpeed = 0.2
+                rightSpeed = -0.2
+            else:
+                leftSpeed = -0.2
+                rightSpeed = 0.2
+            
+        elif theta < thetaGoal:
+            leftSpeed = 0.2;
+            rightSpeed = 0.2;
+
+
+
     
     return [
 
 
 
-        ['imgproc_index', idx],
+        # ['imgproc_index', idx],
         
         # ['imgproc_dist', dist],
         
         # ['imgproc_x_intersect', x_intersec],
         # ['imgproc_x_offset', x_offset],
-        ['imgproc_k',k],
+        # ['imgproc_k',k],
         ['imgproc_b',b],
         ['imgproc_delta', delta_x_intersec],
         ['imgproc_theta', theta]
@@ -510,9 +546,12 @@ def paramProcess(k, b, x, y, idx):
 
 thisFrame =[]
 continueFlag = 1
-networkState = 0
+networkState = 1
 updatedFlag = 0
 doImgProcess = False
+
+leftSpeed = 0
+rightSpeed = 0
 def getFrame():
     global cap,thisFrame,updatedFlag,continueFlag
     while continueFlag:
@@ -531,46 +570,46 @@ def getFrame():
 
 
     return
-def networkReconnect():
-    global continueFlag,connectionRestartRequest,networkState
+# def networkReconnect():
+#     global continueFlag,connectionRestartRequest,networkState
 
-    connectionRestartRequest = 0
+#     connectionRestartRequest = 0
             
 
-    while continueFlag:
+#     while continueFlag:
 
 
 
-        if connectionRestartRequest:
-            p = pexpect.spawn("sudo /etc/init.d/network-manager restart")
-            try:
-                if p.expect([pexpect.TIMEOUT,'password']):
-                    p.sendline('ubuntu')
-            except:
-                pass
-            try:
-                p.expect([pexpect.TIMEOUT,pexpect.EOF])
-            except:
-                pass
-            #print(str(p))
-            time.sleep(5)
-            connectionRestartRequest = 0
-        SSID = os.popen("iwconfig wlan0 \
-                | grep 'ESSID' \
-                | awk '{print $4}' \
-                | awk -F\\\" '{print $2}'").read()
+#         if connectionRestartRequest:
+#             p = pexpect.spawn("sudo /etc/init.d/network-manager restart")
+#             try:
+#                 if p.expect([pexpect.TIMEOUT,'password']):
+#                     p.sendline('ubuntu')
+#             except:
+#                 pass
+#             try:
+#                 p.expect([pexpect.TIMEOUT,pexpect.EOF])
+#             except:
+#                 pass
+#             #print(str(p))
+#             time.sleep(5)
+#             connectionRestartRequest = 0
+#         SSID = os.popen("iwconfig wlan0 \
+#                 | grep 'ESSID' \
+#                 | awk '{print $4}' \
+#                 | awk -F\\\" '{print $2}'").read()
 
-        if SSID.find('5515')>-1:
-            state = 1
-        else:
-            state = 0
-            connectionRestartRequest +=1
+#         if SSID.find('5515')>-1:
+#             state = 1
+#         else:
+#             state = 0
+#             connectionRestartRequest +=1
             
-        #print(['wifi',state])
-        displayUpdate(pinTarget=displayPins['WIFI'],state=state)
-        networkState = state
-        time.sleep(5)
-    return 1
+#         #print(['wifi',state])
+#         displayUpdate(pinTarget=displayPins['WIFI'],state=state)
+#         networkState = state
+#         time.sleep(5)
+#     return 1
 
 
 
@@ -579,9 +618,10 @@ def checkAll():
     global allCheckedMark
     global networkState
     
-    A1 = checkNetworkTableConnection()
+    A1 = checkNetworkTableConnection() or True
+
     A2 = checkCamConnection()
-    A3 = networkState
+    A3 = networkState or True
     allCheckedMark = A1 and A2 and A3
     return allCheckedMark
 
@@ -591,7 +631,7 @@ def checkAll():
     
 
 def mainLoop():
-    global  updatedFlag, continueFlag, thisFrame,table,f2
+    global  updatedFlag, continueFlag, thisFrame#,table,f2
 
     # Stablization config
     delK_THRESHOLD = 0.7
@@ -618,7 +658,8 @@ def mainLoop():
 
         # if idx%10 == 0:
         #     checkAll()
-        if not (checkAll() and updatedFlag and doImgProcess):
+        # if not (checkAll() and updatedFlag and doImgProcess):
+        if not (checkAll() and updatedFlag):
             continue
 
         #print(['updatedFlag',updatedFlag])
@@ -695,8 +736,8 @@ def mainLoop():
 
                 displayUpdate(displayPins['IMGPROCESS'],mode='blink')
                 for param in ctrlParamList:
-                    f2.read()
-                    f2.write("{0} ".format(param[1]))
+                    # f2.read()
+                    # f2.write("{0} ".format(param[1]))
 
                     print("{0} {1}".format(param[0],param[1]))
                     try:
@@ -707,8 +748,8 @@ def mainLoop():
                         pass
                         #print('no NetworkTable')
 
-                f2.read()
-                f2.write("\n")
+                # f2.read()
+                # f2.write("\n")
 
 
             cv2.imshow("capture", frame)
@@ -723,8 +764,8 @@ def mainLoop():
 
     continueFlag=0
     frameThread.join(timeout=1)
-    networkTableSetupThread.join(timeout = 1)
-    networkReconnectThread.join(timeout=5)
+    # networkTableSetupThread.join(timeout = 1)
+    # networkReconnectThread.join(timeout=5)
     cap.release()
     cv2.destroyAllWindows()
     resetPins()
@@ -732,19 +773,51 @@ def mainLoop():
     return 1
 
 
+
+def sendingPWM():
+    global leftSpeed, rightSpeed,continueFlag
+    channelLeft = 20
+    channelRight = 21
+
+    freq = 255
+
+    pL = gp.PWM(channelLeft, freq);
+    pR = gp.PWM(channelRight, freq);
+
+    pL.start(0)
+    pR.start(0)
+    while continueFlag:
+
+        pL.ChangeDutyCycle((leftSpeed+1)*100)
+        pR.ChangeDutyCycle((rightSpeed+1)*100)
+
+    pL.stop()
+    pR.stop()
+
+    
+
+
+
+
 if __name__=="__main__":
-    f2 = open('test.txt','r+')
+
+    
+
+    # f2 = open('test.txt','r+')
     frameThread = threading.Thread(target=getFrame)
     frameThread.start()
 
-    networkTableSetupThread = threading.Thread(target=networkTableSetup)
-    networkTableSetupThread.start()
+    # networkTableSetupThread = threading.Thread(target=networkTableSetup)
+    # networkTableSetupThread.start()
 
-    networkReconnectThread = threading.Thread(target=networkReconnect)
-    networkReconnectThread.start()  
+    # networkReconnectThread = threading.Thread(target=networkReconnect)
+    # networkReconnectThread.start()  
 
     mainLoopThread = threading.Thread(target=mainLoop)
     mainLoopThread.start()
 
-    checkRoborioCommandThread = threading.Thread(target=checkRoborioCommand)
-    checkRoborioCommandThread.start()
+    # checkRoborioCommandThread = threading.Thread(target=checkRoborioCommand)
+    # checkRoborioCommandThread.start()
+
+    sendingPWMThread = threading.Thread(target=sendingPWM)
+    sendingPWMThread.start()
