@@ -9,7 +9,7 @@ from random import choice
 import pexpect
 
 import numpy as np
-from networktables import NetworkTables
+from networktables import Netwo rkTables
 
 import cv2
 import RPi.GPIO as gp
@@ -43,7 +43,7 @@ def cropImg(img, x, w, y, h, dispImg=None):
 
 def findIntersections(crop_img_line):
 
-    _, binary = cv2.threshold(crop_img_line, 200, 1, cv2.THRESH_BINARY)
+    _, binary = cv2.threshold(crop_img_line, 240, 1, cv2.THRESH_BINARY)
     x1 = np.nonzero(binary)[1]
     x0 = np.where(binary == 0)[1]
 
@@ -329,14 +329,15 @@ def find_best_fit_line(X, Y, slope_sensitivity):
 
 # DisplayLED Set
 gp.setmode(gp.BCM)
-channel = [6,13,19,26]
+channel = [6,13,19,26,5]
 gp.setup(channel,gp.OUT)
 
 displayPins={
 'WIFI' : 0,
 'NETWORKTABLE' : 1,
 'CAM' : 2,
-'IMGPROCESS' : 3}
+'IMGPROCESS' : 3,
+'LIGHT':4}
 
 def resetPins():
     for pin in channel:
@@ -405,6 +406,23 @@ def checkNetworkTableConnection():
     displayUpdate(pinTarget=displayPins['NETWORKTABLE'],state=state)
     return state
 
+def checkRoborioCommand():
+    global table,doImgProcess,continueFlag
+    while continueFlag:
+        state = False
+        if NetworkTables.isConnected():
+            try:
+                if table.getNumber('light',0):
+                    state = True
+            except:
+                pass
+        
+        doImgProcess = state
+        displayUpdate(pinTarget=displayPins['LIGHT'],state=state)
+        time.sleep(0.5)
+    return 1
+    
+
 cap = cv2.VideoCapture(0)
 
 def checkCamConnection():
@@ -453,18 +471,35 @@ def paramProcess(k, b, x, y, idx):
     x_offset = MID_POINT[0]-x_intersec
 
 
+    
+    ##FUNC AND DELTA
+
+    def func(theta):
+        
+        A= 700.042
+        B=1.06387
+        m=0.0478337
+        n=300.258
+
+        return A*math.tan(B*theta+m)+n
+
+    
+    x_intersec_best = func(theta)
+    delta_x_intersec = x_intersec - x_intersec_best
+    
     return [
 
 
 
         ['imgproc_index', idx],
         
-        ['imgproc_dist', dist],
+        # ['imgproc_dist', dist],
         
-        ['imgproc_x_intersect', x_intersec],
-        ['imgproc_x_offset', x_offset],
-        # ['imgproc_k',k],
-        # ['imgproc_b',b]
+        # ['imgproc_x_intersect', x_intersec],
+        # ['imgproc_x_offset', x_offset],
+        ['imgproc_k',k],
+        ['imgproc_b',b],
+        ['imgproc_delta', delta_x_intersec],
         ['imgproc_theta', theta]
        # ['imgproc_LR', LR],
        # ['imgproc_dist', dist],
@@ -477,6 +512,7 @@ thisFrame =[]
 continueFlag = 1
 networkState = 0
 updatedFlag = 0
+doImgProcess = False
 def getFrame():
     global cap,thisFrame,updatedFlag,continueFlag
     while continueFlag:
@@ -555,7 +591,7 @@ def checkAll():
     
 
 def mainLoop():
-    global  updatedFlag, continueFlag, thisFrame,table#,f2
+    global  updatedFlag, continueFlag, thisFrame,table,f2
 
     # Stablization config
     delK_THRESHOLD = 0.7
@@ -582,12 +618,10 @@ def mainLoop():
 
         # if idx%10 == 0:
         #     checkAll()
-        if not checkAll():
+        if not (checkAll() and updatedFlag and doImgProcess):
             continue
 
         #print(['updatedFlag',updatedFlag])
-        if not updatedFlag:
-            continue
 
         idx = idx + 1
         # get a frame
@@ -597,7 +631,7 @@ def mainLoop():
         frame = cv2.resize(frame, (math.floor(
             FRAME_SIZE_INDEX*width), math.floor(FRAME_SIZE_INDEX*height)))
         height, width = frame.shape[:2]
-        # cv2.imshow("capture", frame)
+        cv2.imshow("capture", frame)
     # FIND-INTERSECTIONS & RAW POINTS
         # Read all intersect found
         # Generate all Y Index
@@ -656,12 +690,13 @@ def mainLoop():
                     line_p2 = (1000, math.floor(1000*k + b))
                     cv2.line(frame, line_p1, line_p2, (255, 0, 0), 2)
 
+                print(k, b, height, width, idx)
                 ctrlParamList = paramProcess(k, b, height, width, idx)
 
                 displayUpdate(displayPins['IMGPROCESS'],mode='blink')
                 for param in ctrlParamList:
-                    # f2.read()
-                    # f2.write("{0} ".format(param[1]))
+                    f2.read()
+                    f2.write("{0} ".format(param[1]))
 
                     print("{0} {1}".format(param[0],param[1]))
                     try:
@@ -672,11 +707,11 @@ def mainLoop():
                         pass
                         #print('no NetworkTable')
 
-                # f2.read()
-                # f2.write("\n")
+                f2.read()
+                f2.write("\n")
 
 
-            # cv2.imshow("capture", frame)
+            cv2.imshow("capture", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
            
             break
@@ -698,7 +733,7 @@ def mainLoop():
 
 
 if __name__=="__main__":
-    # f2 = open('test.txt','r+')
+    f2 = open('test.txt','r+')
     frameThread = threading.Thread(target=getFrame)
     frameThread.start()
 
@@ -710,3 +745,6 @@ if __name__=="__main__":
 
     mainLoopThread = threading.Thread(target=mainLoop)
     mainLoopThread.start()
+
+    checkRoborioCommandThread = threading.Thread(target=checkRoborioCommand)
+    checkRoborioCommandThread.start()
